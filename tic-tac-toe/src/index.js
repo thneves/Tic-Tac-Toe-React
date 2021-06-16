@@ -2,30 +2,40 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-class Square extends React.Component {
-  constructor(props) {
-    // All React component classes that have a constructor should start with a super(props) call.
-    super(props);
-    this.state = {
-      value: null,
-    };
-  }
-
-  render() {
-    return (
-      <button 
-        className="square"
-        onClick={ () => { this.setState({ value: 'X'})}}
-      >
-        { this.state.value }
-      </button>
-    );
-  }
+function Square(props) { // function components are a simpler way to write components that only contain a 'render' methos and don't have their own state.
+  // Many components can be expressed this way.
+  return (
+    <button className="square" onClick={props.onClick}>
+      {props.value}
+    </button>
+  )
 }
 
 class Board extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      squares: Array(9).fill(null),
+    }
+  }
+
+  handleClick(i) {
+    const squares = this.state.squares.slice(); // using slice to create a copy of the existing array, instead of modifying the original data
+    // There are generally two approaches to changing data, modifying its values or creating a copy of it.
+    squares[i] = 'X';
+    this.setState({ squares: squares});
+  }
+
+  // Avoiding direct data mutation let me keep previous versions of the game's history intact, and reuse them later. It makes complex features easier to implement.
+  // Also, detecting changes in mutable objects is difficult, cause they are modified directly, with previous versions we can now it has changed.
+
   renderSquare(i) {
-    return <Square value={i}/>
+    return (
+      <Square
+        value={this.state.squares[i]}
+        onClick={ () => this.handleClick(i) }
+      />
+    )
   }
 
   render() {
