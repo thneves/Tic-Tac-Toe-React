@@ -2,13 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-function Square(props) { // function components are a simpler way to write components that only contain a 'render' methos and don't have their own state.
+function Square(props) { // function components are a simpler way to write components that only contain a 'render' method and don't have their own state.
   // Many components can be expressed this way.
-  return (
+  // Since this component no longer mantain a 'state', it receive values from the Board component through 'onClick'. This component now is 'controlled component' by the Board class.
+  return ( 
     <button className="square" onClick={props.onClick}>
       {props.value}
     </button>
-  )
+  ) // In functional components there's no need for the use of 'this'. Note the 'props.value' instead of 'this.props.value', no parenthesis at end either.
 }
 
 class Board extends React.Component {
@@ -16,14 +17,21 @@ class Board extends React.Component {
     super(props);
     this.state = {
       squares: Array(9).fill(null),
+      xIsNext: true,
     }
   }
 
   handleClick(i) {
     const squares = this.state.squares.slice(); // using slice to create a copy of the existing array, instead of modifying the original data
     // There are generally two approaches to changing data, modifying its values or creating a copy of it.
-    squares[i] = 'X';
-    this.setState({ squares: squares});
+    if (calculateWinner(squares) || squares[i]) {
+      return;
+    }
+    squares[i] = this.state.xIsNext ? 'X' : 'O';
+    this.setState({ 
+      squares: squares,
+      xIsNext: !this.state.xIsNext
+    });
   }
 
   // Avoiding direct data mutation let me keep previous versions of the game's history intact, and reuse them later. It makes complex features easier to implement.
@@ -39,7 +47,13 @@ class Board extends React.Component {
   }
 
   render() {
-    const status = 'Next player: X';
+    const winner = calculateWinner(this.state.squares);
+    let status;
+    if (winner) {
+      status = 'Winner ' + winner;
+    } else {
+      status = `Next Player: ${this.state.xIsNext ? 'X' : 'O'}`;
+    }
 
     return (
       <div>
@@ -80,10 +94,35 @@ class Game extends React.Component {
   }
 }
 
+// Helper Function to Determine the Winner
+
+function calculateWinner(squares) {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+    [1, 4, 7]
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a,b,c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+
+  return null;
+}
+
 // --------------------------------
 
 ReactDOM.render(
   <Game />,
   document.getElementById('root')
 );
+
+
 
