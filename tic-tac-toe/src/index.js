@@ -13,42 +13,16 @@ function Square(props) { // function components are a simpler way to write compo
 }
 
 class Board extends React.Component {
-
-
-  handleClick(i) {
-    const squares = this.state.squares.slice(); // using slice to create a copy of the existing array, instead of modifying the original data
-    // There are generally two approaches to changing data, modifying its values or creating a copy of it.
-    if (calculateWinner(squares) || squares[i]) {
-      return;
-    }
-    squares[i] = this.state.xIsNext ? 'X' : 'O';
-    this.setState({ 
-      squares: squares,
-      xIsNext: !this.state.xIsNext
-    });
-  }
-
-  // Avoiding direct data mutation let me keep previous versions of the game's history intact, and reuse them later. It makes complex features easier to implement.
-  // Also, detecting changes in mutable objects is difficult, cause they are modified directly, with previous versions we can now it has changed.
-
   renderSquare(i) {
     return (
       <Square
         value={this.props.squares[i]}
-        onClick={ () => this.props.handleClick(i) }
+        onClick={ () => this.props.onClick(i) }
       />
     )
   }
 
   render() {
-    const winner = calculateWinner(this.state.squares);
-    let status;
-    if (winner) {
-      status = 'Winner ' + winner;
-    } else {
-      status = `Next Player: ${this.state.xIsNext ? 'X' : 'O'}`;
-    }
-
     return (
       <div>
         <div className="board-row">
@@ -81,15 +55,36 @@ class Game extends React.Component {
       xIsNext: true,
     };
   }
+
+  handleClick(i) {
+    const history = this.state.history;
+    const current = history[history.length - 1];
+    const squares = current.squares.slice(); // using slice to create a copy of the existing array, instead of modifying the original data
+    // There are generally two approaches to changing data, modifying its values or creating a copy of it.
+    if (calculateWinner(squares) || squares[i]) {
+      return;
+    }
+    squares[i] = this.state.xIsNext ? 'X' : 'O';
+    this.setState({
+      history: history.concat([{
+        squares: squares
+      }]),
+      xIsNext: !this.state.xIsNext,
+    })
+  }
+
+  // Avoiding direct data mutation let me keep previous versions of the game's history intact, and reuse them later. It makes complex features easier to implement.
+  // Also, detecting changes in mutable objects is difficult, cause they are modified directly, with previous versions we can now it has changed.
+
   render() {
     const history = this.state.history;
     const current = history[history.length - 1];
     const winner = calculateWinner(current.squares);
     let status;
     if (winner) {
-      status = 'Winner: ' + winner;
+      status = '  Winner: ' + winner;
     } else {
-      status = 'Next Player:' + (this.state.xIsNext ? 'X' : 'O';)
+      status = '  Next Player:' + (this.state.xIsNext ? 'X' : 'O')
     }
     return(
       <div className="game">
