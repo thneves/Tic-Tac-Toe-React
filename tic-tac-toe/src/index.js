@@ -52,14 +52,15 @@ class Game extends React.Component {
       history: [{
         squares: Array(9).fill(null),
       }],
+      stepNumber: 0,
       xIsNext: true,
     };
   }
 
   handleClick(i) {
-    const history = this.state.history;
+    const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
-    const squares = current.squares.slice(); // using slice to create a copy of the existing array, instead of modifying the original data
+    const squares = current.squares.slice(0); // using slice to create a copy of the existing array, instead of modifying the original data
     // There are generally two approaches to changing data, modifying its values or creating a copy of it.
     if (calculateWinner(squares) || squares[i]) {
       return;
@@ -69,6 +70,7 @@ class Game extends React.Component {
       history: history.concat([{
         squares: squares
       }]),
+      stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
     })
   }
@@ -76,10 +78,28 @@ class Game extends React.Component {
   // Avoiding direct data mutation let me keep previous versions of the game's history intact, and reuse them later. It makes complex features easier to implement.
   // Also, detecting changes in mutable objects is difficult, cause they are modified directly, with previous versions we can now it has changed.
 
+  jumpTo(step) {
+    this.setState({
+      stepNumber: step,
+      xIsNext: (step % 2) === 0,
+    });
+  }
+
   render() {
     const history = this.state.history;
-    const current = history[history.length - 1];
+    const current = history[this.state.stepNumber];
     const winner = calculateWinner(current.squares);
+
+    const moves = history.map((step, move) => {
+      const desc = move ? 'Go to move #' + move : 'Go to game start';
+      return (
+        <li key={move}>
+          <button onClick={() => this.jumpTo(move)}>{desc}</button>
+        </li>
+      );
+    });
+
+
     let status;
     if (winner) {
       status = '  Winner: ' + winner;
@@ -96,7 +116,7 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{status}</div>
-          <div>{/* TODO */}</div>
+          <ol>{moves}</ol>
         </div>
       </div>
     )
